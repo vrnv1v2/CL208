@@ -1,0 +1,16 @@
+function main()
+    % Define initial conditions
+    n0 = [0, 0, 0, 0, 0, 0]; % Initial amounts of Hp, Hq, Bq, Wl, Wv, O2
+    h0 = [0, 0]; % Initial temperature and other variable (if applicable)
+
+    % Define time span
+    tspan = [0, 1500]; % Time span from 0 to 1500
+
+    % Solve the system
+    [t, y] = ode15s(@beetle_model, tspan, [n0, h0]);
+
+    % Plot your results or do further analysis
+    % Example:
+     plot(t, y(:, 1), 'r', t, y(:, 2), 'b');
+     legend('Hp', 'Hq');
+end
