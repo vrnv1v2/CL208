@@ -1,0 +1,129 @@
+function dndt = beetle_model(t,n)
+ 
+%define values of constants
+V = 8.48e-10;
+R = 8.314;
+A1 = 5e7;
+A2 = 5e7;
+Ea1 = 3.8e4;
+Ea2 = 3.8e4;
+Vbar_hp = 2.32e-5;
+Vbar_hq = 8.46e-5;
+Vbar_bq = 8.24e-5;
+Vbar_wl = 1.8e-5;
+
+
+Cp_BQ=75.3
+Cp_HP=89
+Cp_HQ=75.3
+Cp_O2=30
+Cp_WL=75.3
+
+
+
+
+h=10;
+Ac=1.884e-7;
+m_c=1e-6
+Cp_C=
+
+P_o = 101000;
+P_inclose = 102000;
+P_res = 109000;
+
+r_in = 15e-6; % Remember to try and vary this parameter later
+L= 0.0001;
+meu = 0.001;
+
+phi_hp = 0.2;
+phi_hq = 0.02;
+
+x_wl_in = 0.81;
+x_hp_in = 0.17;
+x_hq_in = 0.02;
+
+H1=-98200
+H2=-216600
+
+M_w  = 0.018;
+M_hp = 0.034;
+M_hq = 0.110;
+M_bq = 0.108;
+M_O2 = 0.016;
+
+Cd = 0.97;
+r_out = 0.0003;
+T_sat =
+T_ref = 290;
+
+%equations
+
+V_hp = n(1)*Vbar_hp;
+V_hq = n(2)*Vbar_hq;
+V_bq = n(3)*Vbar_bq;
+V_wl = n(4)*Vbar_wl;
+
+V_L = V_wl+V_bq+V_hq+V_hp;
+V_G = V-V_L;
+
+p_wv = (n(5)*R*T)/V_G;
+p_O2 = (n(6)*R*T)/V_G;
+
+P = p_O2+p_wv;
+
+R1 = n(1)*A1*exp(-Ea1/(R*T));
+R2 = n(2)*A2*exp(-Ea2/(R*T));
+
+zai = (P_inclose - P)/(P_inclose-P_o);
+
+F_in = ((P_res -P)*r_in^4*3.14*zai)/(8*L*meu);
+
+Vbar_in = Vbar_wl*x_wl_in+ Vbar_hp*x_hp_in + Vbar_hq*x_hq_in;
+
+W_hp_in = (phi_hp*F_in)/Vbar_in;
+W_hq_in = (phi_hq*F_in)/Vbar_in;
+W_w_in = ((1-phi_hq-phi_hp)*F_in)/Vbar_in;
+#Check this
+# W_hp_in = (phi_hp*F_in)/(Vbar_hp*x_hp_in);
+# W_hq_in = (phi_hq*F_in)/(Vbar_hq*x_hq_in;
+# W_w_in = ((1-phi_hq-phi_hp)*F_in)/(x_wl_in);
+
+
+x_1 = n(1)/(n(1)+n(2)+n(3)+n(4)+n(5)+n(6));% H2O2
+x_2 = n(2)/(n(1)+n(2)+n(3)+n(4)+n(5)+n(6));% Hydroquinone
+x_3 = n(3)/(n(1)+n(2)+n(3)+n(4)+n(5)+n(6));% Benzoquinone
+x_4 = n(4)/(n(1)+n(2)+n(3)+n(4)+n(5)+n(6));% H2O liq
+x_5 = n(5)/(n(1)+n(2)+n(3)+n(4)+n(5)+n(6));% H2O vap
+x_6 = n(6)/(n(1)+n(2)+n(3)+n(4)+n(5)+n(6));% O2
+
+Vbar_G = R*T/P;
+
+Vbar_mix = Vbar_G*(x_6 + x_5) + Vbar_wl*x_4 + Vbar_hp*x_1 + Vbar_hq*x_2;
+
+rho_mix = (x_1*M_hp+x_2*M_hq+x_3*M_bq+x_4*M_w+x_5*M_w+x_6*M_O2)/Vbar_mix;
+
+F_out = Cd*sqrt(2*(P-P_o)/rho_mix)*r_out^2*3.14;
+
+h_wv = M_w*(-1.568182*(T_sat-273.15)^2+1916.348*(T_sat-273.15)+2416597 + 1904*(T-T_sat));
+
+W_hp_out = (x_1*F_out)/Vbar_mix;
+W_hq_out = (x_2*F_out)/Vbar_mix;
+W_bq_out = (x_3*F_out)/Vbar_mix;
+W_wl_out = (x_4*F_out)/Vbar_mix;
+W_wv_out = (x_5*F_out)/Vbar_mix;
+W_o2_out = (x_6*F_out)/Vbar_mix;
+
+Q_out = (W_wl_out*Cp_wl+W_hp_out*C_hp+W_hq_out*C_hq+W_bq_out*C_bq)*(T-T_ref)+ W_wv_out*h_wv;
+
+
+dndt(1) = W_hp_in - W_hp_out -R1;
+dndt(7) = W_w_in-W_wl_out-W_wv_out+R1+R2;
+dndt(6) = -W_hp_out+ (R1-R2)/2;
+dndt(2) = W_hq_in - W_hq_out -R2;
+dndt(3) = -W_bq_out +R2;
+# n(7)=n(4)+n(5)
+
+h(1)=(n(1)*Cp_HP+n(2)*Cp_HQ+n(3)*Cp_BQ+n(4)*Cp_WL+n(6)*Cp_O2+ +n(5)*h_wv)
+h(2)=(Tc-T_ref)*m_c*Cp_C
+dhdt(1)=-Q_out-H1*R1-H2*R2-h*Ac*(T-Tc)
+dhdt(2)=h*Ac*(T-Tc)
